@@ -1,13 +1,23 @@
-def setup_pairing_signal_listener(self, callback):
-    """Setup D-Bus signal listener for pairing status changes."""
-    self.pairing_status_callback = callback
+def register_pairing_status_callback(self, status_update_handler):
+    """
+    Registers a handler to receive Bluetooth pairing status updates via D-Bus signals.
+
+    This sets up a listener for the 'PropertiesChanged' signal on the 'org.bluez.Device1' interface.
+    When the 'Paired' property changes (either paired or unpaired), the provided handler is called.
+
+    Args:
+        status_update_handler (function): A callable that accepts two arguments:
+            - device_address (str): The Bluetooth address of the device.
+            - paired (bool): True if the device is now paired, False if unpaired or pairing failed.
+    """
+    self.pairing_status_callback = status_update_handler
     self.bus.add_signal_receiver(
-        self.on_properties_changed,
+        self._on_properties_changed,
         dbus_interface="org.freedesktop.DBus.Properties",
         signal_name="PropertiesChanged",
         arg0="org.bluez.Device1",
-        path_keyword="path")
-
+        path_keyword="path"
+    )
 def on_properties_changed(self, interface, changed, invalidated, path):
     if interface != "org.bluez.Device1" or "Paired" not in changed:
         return
